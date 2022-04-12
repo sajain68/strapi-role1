@@ -1,0 +1,37 @@
+---
+# tasks file for strapi
+#
+- name: Installing docker
+  package:
+         name: docker-ce
+         state: present
+
+- name: Installing docker-compose
+  become: yes
+  get_url:
+          url:  https://github.com/docker/compose/releases/download/1.28.5/docker-compose-Linux-x86_64 
+          dest: /usr/local/bin/docker-compose
+          mode: 'u+x,g+x'
+
+- name: Making docker-compose executable
+  command: 'sudo chmod +x /usr/local/bin/docker-compose'
+
+- name: Installing Nginx
+  package:
+          name: nginx
+          state: present
+
+- name: Copying template file docker-compose.yaml
+  template:
+          src: docker-compose.yaml
+          dest: /root/strapi
+
+- name: Pulling image
+  command: docker-compose pull
+  args:
+          chdir: /root/strapi
+
+- name: Creating strapi containers
+  command: docker-compose up -d --scale strapi=3 
+  args:
+          chdir: /root/strapi
